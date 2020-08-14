@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Tutor &mdash; Free Website Template by Colorlib</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <%- include('partials/htmlCss')%>
+</head>
+
+<body>
+    <%- include('partials/htmlHeader',{active:'tutorials'} )%>
+
+        <div class="site-section-cover overlay" style="background-image: url('images/hero_bg.jpg');">
+
+            <div class="container">
+                <div class="row align-items-center justify-content-center">
+                    <div class="col-lg-10 text-center">
+                        <h1>JOIN <strong>US</strong> GET <strong>SUCCESS</strong></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="site-section bg-light">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-7 text-center mb-5">
+                        <div class="heading">
+                            <span class="caption">New Student</span>
+                            <h2>WELCOME</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="row signup">
+
+                    <!-- Sign up form -->
+                    <section class="signup">
+                        <div class="signup-container">
+                            <div class="signup-content">
+                                <div class="signup-form">
+                                    <br> <br> <br>
+                                    <h1 class="form-title">Sign up</h1>
+                                    <br>
+                                    <form method="POST" class="register-form" id="register-form">
+                                        <div class="form-group">
+                                            <label for="name"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                                            <input class="signupInp" type="text" name="name" id="name" placeholder="Your Name" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="email"><i class="zmdi zmdi-email"></i></label>
+                                            <input class="signupInp" type="email" name="email" id="email" placeholder="Your Email" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pass"><i class="zmdi zmdi-lock"></i></label>
+                                            <input class="signupInp" type="password" name="pass" id="pass" placeholder="Password" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="re-pass"><i class="zmdi zmdi-lock-outline"></i></label>
+                                            <input class="signupInp" type="password" name="re_pass" id="re_pass" placeholder="Repeat your password" />
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" />
+                                            <label for="agree-term" class="label-agree-term"><span><span></span></span>I agree all
+                        statements
+                        in
+                        <a href="/#" class="term-service">Terms of service</a></label>
+                                        </div>
+                                        <div class="form-group form-button">
+                                            <button id="registerBtn" class="form-submit btn btn-outline-success">Register</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <br><br><br>
+                                <div class="signup-image">
+                                    <figure><img src="/images/signup-image.jpg" alt="sing up image"></figure>
+                                    <a href="/#" class="signup-image-link">I am already member</a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <%- include('partials/htmlFooter')%>
+
+
+    </div>
+
+    <%- include('partials/htmlJs')%>
+
+
+    <script>
+        // your front end fetch request code here
+        // get inputs values
+        document.querySelector('#registerBtn').addEventListener('click', e => {
+            e.preventDefault()
+            const name = document.querySelector('#name')
+            const email = document.querySelector('#email')
+            const password = document.querySelector('#pass')
+            const repassword = document.querySelector('#re_pass')
+            const checkInput = document.querySelector('#agree-term')
+
+
+            //  create check Validation variabl
+            let checkValidation = {
+                check: true,
+                message: ''
+            }
+            if (!(name.value.trim())) {
+                checkValidation.check = false
+                checkValidation.message = 'Name Is Empty,<br>'
+
+            }
+            if (!email.value.trim()) {
+                checkValidation.check = false
+                checkValidation.message += 'Email Is Empty ,<br>'
+            }
+            if (!password.value) {
+                checkValidation.check = false
+                checkValidation.message += 'Password Is Empty ,<br>'
+            }
+            if (password.value !== repassword.value) {
+                checkValidation.check = false
+                checkValidation.message += 'Password does not match the Repassword ,<br>'
+            }
+            if (!checkInput.checked) {
+                checkValidation.check = false
+                checkValidation.message += 'You have to agree to usage terms ,<br>'
+            }
+            if (checkValidation.check) {
+                // send Data 
+
+                // create object to be sent
+                const sentObj = {
+                    name: name.value,
+                    email: email.value,
+                    password: password.value,
+                    repassword: repassword.value
+                }
+                console.log(sentObj.name);
+
+
+                // send data using fetch
+                fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sentObj)
+                }).then(response => {
+                    if (response.status == 200) {
+                        response.json().then(data => {
+                            //console.log(data)
+                            switch (data) {
+                                case 1:
+                                    showModal(false, "Register Success", "you can go to login page...")
+                                    break;
+                                case 2:
+                                    showModal(true, "missing ertries", "you miss some entries or your password does not match repassword")
+                                    break;
+                                case 3:
+                                    showModal(true, "Email is registered", "this email already registered to the system")
+                                    break;
+                                case 4:
+                                    showModal(true, "Server Error", "Something unexpected happened. please contact the system Adminstrator")
+                                    break;
+
+                                default:
+                                    showModal(true, "Server Error", "Something unexpected happened. please contact the system Adminstrator")
+                                    break;
+                            }
+                        }).catch(error => {
+                            console.log(error);
+                            showModal(true, "error on getting data", 'please contact the Administrator')
+                        })
+                    }
+                }).catch(error => {
+                    console.log(error)
+                    showModal(true, "server side error", error.message)
+                })
+            } else {
+                 showModal(true, "missing ertries",  checkValidation.message)
+            }
+
+        })
+    </script>
+
+
+
+
+</body>
+
+</html>
