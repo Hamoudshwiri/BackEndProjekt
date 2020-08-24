@@ -35,7 +35,8 @@ Timeline: 24.08.2020
 
 
 Setup:
-you can find our web side through this link: https://github.com/FBW5-Hamburg/back-end-g5.
+you can find our web side through this link: https://fbw5-tutorial.herokuapp.com/ 
+
 
 
 
