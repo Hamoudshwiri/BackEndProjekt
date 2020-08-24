@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <%- include('partials/htmlHeader', {active:'home'})%>
+    <%- include('partials/htmlHeader', {error:true, active:'home'})%>
 
             <div class="site-section-cover overlay" style="background-image: url('images/hero_bg.jpg');">
 
@@ -27,19 +27,17 @@
                     <div class="row justify-content-center">
                         <div class="col-lg-7 text-center mb-5">
                             <div class="heading">
-                                <span class="caption">New Password</span>
-                                <h2>Change Admin Password</h2>
+                                <span class="caption">Adminstrator Account</span>
+                                <h2>Edit Any Account From Hier</h2>
                             </div>
                         </div>
                     </div>
-                    <div class="row signup">
-                        <form action="/admin/editAdmin" method="post">
-                            <input type="email" name="oldEmail" id=""><br> <br>
-                            <input type="password" name="oldPassword" id=""><br> <br>
-                            <input type="email" name="email" id=""><br> <br>
-                            <input type="password" name="password" id=""><br> <br>
-                            <input type="submit" class="btn btn-dark" value="Save">
-                        </form>
+                    <div class="row signup d-flex">
+                        <ol class="list-inline mx-auto justify-content-center">
+                            <li> Change <a href="/adminpanel/editAdmin">Admin</a> Account </li>
+                            <li>Change <a href="/adminpanel/editTeacher"> Teachers </a>Accounts </li>
+                            <li> Change <a href="/adminpanel/edituser">Users </a>Accounts </li>
+                        </ol>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Tutor &mdash; Free Website Template by Colorlib</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <%- include('partials/htmlCss')%>
+</head>
+
+<body>
+    <%- include('partials/htmlHeader', {error:false, active:'home'})%>
+
+    <div class="site-section-cover overlay" style="background-image: url('images/hero_bg.jpg');">
+
+        <div class="container">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-10 text-center">
+                    <h1>The <strong>LogIn</strong> Page Of <strong>Tutorials</strong></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="site-section bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-7 text-center mb-5">
+                    <div class="heading">
+                        <span class="caption">Stay Continuous</span>
+                        <h2>Welcome <%= teacherName %></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row signup">
+                <form style="width: 100%;">
+                    <div class="form-group">
+                        <label for="title">&nbsp; Course Title</label>
+                        <input type="text" class="form-control" id="courseTitleInp" placeholder="Course Title">
+                    </div>
+                    <div class="form-group">
+                        <label for="duration">&nbsp; Course Duration</label>
+                        <input type="text" class="form-control" id="courseDurationInp" placeholder="Course Duration">
+                    </div>
+                    <div class="form-group">
+                        <label for="level">&nbsp; Course Level</label>
+                        <input type="text" class="form-control" id="courseLevelInp" placeholder="Course Level">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">&nbsp; Course Date</label>
+                        <input type="text" class="form-control" id="courseDateInp" placeholder="Course Date">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">&nbsp; Course Price</label>
+                        <input type="text" class="form-control" id="coursePriceInp" placeholder="Enter the Price and ">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleFormControlFile1">Course Images</label>
+                        <input type="file" class="form-control-file" id="courseImgsInp"
+                            accept="image/x-png,image/gif,image/jpeg">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleFormControlFile1">Course PDF</label>
+                        <input type="file" class="form-control-file" id="coursePdfInp" accept="application/pdf">
+                    </div>
+                    <div class="form-group">
+                        <label for="courseDescriptionInp">Course Description</label>
+                        <textarea class="form-control" style="width: 100%;height: 150px;"
+                            id="courseDescriptionInp"></textarea>
+                    </div>
+                    <button class="btn btn-success mt-3" id="courseSaveBtn">Save New Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="site-section bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-7 text-center mb-5">
+                    <div class="heading">
+                        <span class="caption">Edit Your Courses</span>
+                        <h2><%= teacherName %> Courses</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row signup">
+                <table class="table">
+                    <tr>
+                        <td>COURSE-PHOTO</td>
+                        <td>TITLE</td>
+                        <td>DURATOIN</td>
+                        <td>REMOVE</td>
+                    </tr>
+                    <% courses.forEach((course, i) => {%>
+                    <tr>
+                        <td><img style="height: 100px; width: 100px;" src="<%= course.imgUrl  %>" alt=""></td>
+                        <td><%= course.title  %></td>
+                        <td><%= course.duration  %></td>
+                        <td><a href="#" class="btn btn-danger courseDeleteBtn" course="<%=i%>"
+                                deletedtitle="<%= course.title %>">Delete</a></td>
+                    </tr>
+                    <% }); %>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/htmlFooter')%>
+
+
+    </div>
+
+    <%- include('partials/htmlJs')%>
+    <script src="/tinymce/tinymce.min.js"></script>
+    <script>
+
+        $('.courseDeleteBtn').click(function (e) {
+            e.preventDefault();
+
+            let data = {
+                deletedtitle: $(this).attr('deletedtitle')
+            }
+            //$(this).attr('mealid')
+            if (confirm("are you sure you want to delete this Course ?!!")) {
+
+                fetch('/teacher/deleteCourse', {
+                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data) // must match 'Content-Type' header
+                })
+                    .then(response => {
+                        // code here to show modal 
+                        // if response data was 1 
+                        // show success modal and delete 
+                        // else if it was 2 
+                        // show error modal can not delete
+
+                        // check if response is ok
+                        if (response.status == 200) {
+                            // get response data
+                            response.json().then(data => {
+                                switch (data) {
+                                    case 1:
+                                        $(e.target).parent().parent().remove();
+                                        showModal(false, 'success', 'The course deleted correctly and it will be delete from courses gallery')
+                                        break;
+                                    case 2:
+                                        showModal(true, 'Error', 'Can not delete, Tray again later')
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }).catch(error => {
+                                showModal(true, 'Error', 'unknown response format')
+                            })
+                        } else {
+                            showModal(true, 'Error', 'could not send the data')
+                        }
+
+
+                    }).catch(error => {
+                        showModal(true, 'Error', 'can not send the data')
+                    })
+            }
+
+        });
+
+        document.querySelector('#courseSaveBtn').addEventListener('click', e => {
+            e.preventDefault()
+            const courseTitle = document.querySelector('#courseTitleInp').value
+            const courseDuration = document.querySelector('#courseDurationInp').value
+            const courseLevel = document.querySelector('#courseLevelInp').value
+            const courseDate = document.querySelector('#courseDateInp').value
+            const coursePrice = document.querySelector('#coursePriceInp').value
+            const courseDescription = tinymce.get("courseDescriptionInp").getContent();
+            const courseImg = document.querySelector('#courseImgsInp').files[0]
+            const coursePdf = document.querySelector('#coursePdfInp').files[0]
+            console.log('img ' + courseImg);
+            console.log('pdf ' + coursePdf);
+
+
+            const fd = new FormData()
+            fd.append('courseTitle', courseTitle)
+            fd.append('courseDuration', courseDuration)
+            fd.append('courseLevel', courseLevel)
+            fd.append('courseDate', courseDate)
+            fd.append('coursePrice', coursePrice)
+            fd.append('courseDescription', courseDescription)
+            fd.append('courseImg', courseImg)
+            fd.append('coursePdf', coursePdf)
+            // send fd to server side using fetch
+            fetch('/teacher', {
+                method: 'POST',
+                body: fd
+            }).then(response => {
+                // code here to show modal 
+                // if response data was 1 
+                // show success modal and clear the inputs
+                // else if it was 2 
+                // show error modal missing some entries
+
+                // check if response is ok
+                if (response.status == 200) {
+                    // get response data
+                    response.json().then(data => {
+                        switch (data) {
+                            case 1:
+                                showModal(false, 'success', 'The course saved correctly and it will be shown in courses gallery')
+                                document.querySelector('#courseTitleInp').value = ''
+                                document.querySelector('#courseDurationInp').value = ''
+                                document.querySelector('#courseLevelInp').value = ''
+                                document.querySelector('#courseDateInp').value = ''
+                                document.querySelector('#coursePriceInp').value = ''
+                                tinymce.get("courseDescriptionInp").setContent('')
+                                document.querySelector('#courseImgsInp').value = ''
+                                document.querySelector('#coursePdfInp').value = ''
+                                break;
+                            case 2:
+                                showModal(true, 'Error', 'Some entries are missing, make sure to enter all required data')
+                                break;
+                            case 3:
+                                showModal(true, 'course title is exist', 'course title is exist, please type another course title')
+                                break;
+                            default:
+                                break;
+                        }
+                    }).catch(error => {
+                        showModal(true, 'Error', 'unknown response format')
+                    })
+                } else {
+                    showModal(true, 'Error', 'could not send the data')
+                }
+
+
+            }).catch(error => {
+                showModal(true, 'Error', 'can not send the data')
+            })
+        })
+        ////////////////////////////////////////////  tinymce ////////////////////////////////////////
+        tinymce.init({
+
+            selector: '#courseDescriptionInp',
+            /* theme of the editor */
+            theme: "silver",
+            skin: "oxide-dark",
+
+            /* width and height of the editor */
+            width: "100%",
+            height: 300,
+
+            /* display statusbar */
+            statubar: true,
+
+            /* plugin */
+            plugins: [
+                "advlist autolink link image lists charmap print preview hr anchor pagebreak",
+                "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
+                "save table contextmenu directionality emoticons template paste textcolor"
+            ],
+
+            /* toolbar */
+            toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons",
+
+            /* style */
+            style_formats: [{
+                title: "Headers",
+                items: [{
+                    title: "Header 1",
+                    format: "h1"
+                },
+                {
+                    title: "Header 2",
+                    format: "h2"
+                },
+                {
+                    title: "Header 3",
+                    format: "h3"
+                },
+                {
+                    title: "Header 4",
+                    format: "h4"
+                },
+                {
+                    title: "Header 5",
+                    format: "h5"
+                },
+                {
+                    title: "Header 6",
+                    format: "h6"
+                }
+                ]
+            },
+            {
+                title: "Inline",
+                items: [{
+                    title: "Bold",
+                    icon: "bold",
+                    format: "bold"
+                },
+                {
+                    title: "Italic",
+                    icon: "italic",
+                    format: "italic"
+                },
+                {
+                    title: "Underline",
+                    icon: "underline",
+                    format: "underline"
+                },
+                {
+                    title: "Strikethrough",
+                    icon: "strikethrough",
+                    format: "strikethrough"
+                },
+                {
+                    title: "Superscript",
+                    icon: "superscript",
+                    format: "superscript"
+                },
+                {
+                    title: "Subscript",
+                    icon: "subscript",
+                    format: "subscript"
+                },
+                {
+                    title: "Code",
+                    icon: "code",
+                    format: "code"
+                }
+                ]
+            },
+            {
+                title: "Blocks",
+                items: [{
+                    title: "Paragraph",
+                    format: "p"
+                },
+                {
+                    title: "Blockquote",
+                    format: "blockquote"
+                },
+                {
+                    title: "Div",
+                    format: "div"
+                },
+                {
+                    title: "Pre",
+                    format: "pre"
+                }
+                ]
+            },
+            {
+                title: "Alignment",
+                items: [{
+                    title: "Left",
+                    icon: "alignleft",
+                    format: "alignleft"
+                },
+                {
+                    title: "Center",
+                    icon: "aligncenter",
+                    format: "aligncenter"
+                },
+                {
+                    title: "Right",
+                    icon: "alignright",
+                    format: "alignright"
+                },
+                {
+                    title: "Justify",
+                    icon: "alignjustify",
+                    format: "alignjustify"
+                }
+                ]
+            }
+            ]
+        });
+    </script>
+
+</body>
+
+</html>

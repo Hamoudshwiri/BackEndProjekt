@@ -3,6 +3,7 @@ const passwordHash = require('password-hash')
 const mongoose = require('mongoose')
 const fs = require('fs')
 const { stringify } = require('querystring')
+const { Int32 } = require('mongodb')
 
 
 // create a connection string for mongoose 
@@ -24,9 +25,15 @@ const usersSchema = new mongoose.Schema({
     },
     coursesArr: {
         type: Array
-    }
+    },
+    role: {
+        type: String,
+        required: true,
+    },
 })
 const Users = mongoose.model('users', usersSchema)
+
+
 
 function connect() {
     return new Promise((resolve, reject) => {
@@ -46,28 +53,16 @@ function connect() {
     })
 
 }
-// create Admins schema 
-const adminSchema = new mongoose.Schema({
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true,
-    }
-})
-const Admin = mongoose.model('admins', adminSchema)
 
-function registerUser(name, email, password) {
+function registerUser(name, email, password, role) {
     return new Promise((resolve, reject) => {
         connect().then(() => {
             // creat new user
             const newUser = new Users({
                 name: name,
                 email: email,
-                password: passwordHash.generate(password)
+                password: passwordHash.generate(password),
+                role: role
             })
             // save the newUser in the database
             newUser.save().then(result => {
@@ -86,23 +81,35 @@ function registerUser(name, email, password) {
         })
     })
 }
+function checkUser(email, password) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Users.findOne({ email: email }).then(user => {
+                if (user) {
+                    if (passwordHash.verify(password, user.password)) {
+                        resolve(user)
+                    } else {
+                        reject(3)
+                    }
+                } else {
+                    reject(3)
+                }
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
 function checkAdmin(email, password) {
     return new Promise((resolve, reject) => {
         connect().then(() => {
-            // let newAd = new Admin({
-            //     email:'aaa@aaa.com',
-            //     password: passwordHash.generate('1234')
-            // })
-
-            // newAd.save().then(adminInfo=>{
-            //     console.log(adminInfo);
-            // })
-
-            Admin.findOne({ email: email }).then(user => {
-                console.log('user:',user);
+            Users.findOne({ email: email }).then(user => {
                 if (user) {
-                    if (passwordHash.verify(password, user.password)) {
-                        resolve(user.email)
+                    if ((passwordHash.verify(password, user.password)) && user.role === 'admin') {
+                        resolve(user)
                     } else {
                         reject(3)
                     }
@@ -122,11 +129,11 @@ function editAdmin (email, newEmail, newPassword) {
     return new Promise((resolve, reject) => {
         connect().then(() => {
             
-            Admin.updateOne({ email: email }, {
+            Users.updateOne({ email: email }, {
                 email: newEmail,
                 password: passwordHash.generate(newPassword)
             }).then(result => {
-                console.log(result);
+                console.log('this is the result from edit admin'+result);
                 resolve()
             }).catch(error => {
                 console.log(error.code);
@@ -137,6 +144,233 @@ function editAdmin (email, newEmail, newPassword) {
         })
     })
 }
+function getUser(role) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Users.find({ role: role }).then(teacher => {
+                resolve(teacher)
+                // if (teacher) {
+                //     resolve(teacher)
+                // } else {
+                //     reject(3)
+                // }
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+function getUserEmail(email) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Users.find({ email: email }).then(user => {
+                resolve(user)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+function getCourseArr(email) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Users.findOne({ email: email }).then(user => {
+                resolve(user.coursesArr)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+function addCourseArr(email, courseArr) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Users.updateOne({ email: email }, {
+                coursesArr : courseArr
+            }).then(user => {
+                resolve(user)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+function DeletUser(deletedEmail) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Users.deleteOne({ email: deletedEmail }).then(user => {
+                resolve(user)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+
+///////////////////////////////////////////////////////////////////
+
+// start dealling with Courses 
+
+// create Courses schema 
+const coursesSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+    pdfUrl: {
+        type: String,
+        required: true
+    },
+    imgUrl: {
+        type: String,
+        required: true,
+    },
+    duration: {
+        type: String
+    },
+    level: {
+        type: String,
+    },
+    date: {
+        type: String
+    },
+    price: {
+        type: String,
+    },
+    teacherName: {
+        type: String,
+        required: true
+    },
+    teacher_id: {
+        type: String,
+        required: true
+    },
+})
+const Courses = mongoose.model('courses', coursesSchema)
+
+function addCourse(title, description, bookPdf, imgUrl, duration, level, date, price, teacher_id, teacherName) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+                        // get file extension
+                          let ext = imgUrl.name.substr(imgUrl.name.lastIndexOf('.'))
+                          // set the new image name
+                          let newImgName = title.trim().replace(/ /g, '_') + ext
+                          imgUrl.mv('./public/uploadedfiles/' + newImgName)
+                    // set a new pdf file name
+                      let pdfName = title.trim().replace(/ /g, '_') + '_' + '.pdf'
+                  // move the pdf file with the new name to uploadedfiles folder
+                      bookPdf.mv('./public/uploadedfiles/' + pdfName)
+                  // set the pdf url that gonna be saved in the json file
+                      let pdfNewUrl = '/uploadedfiles/' + pdfName
+                      const newCourse = new Courses({
+                          title: title,
+                          description: description,
+                          pdfUrl: pdfNewUrl,
+                          imgUrl: '/uploadedfiles/' + newImgName,
+                          duration:duration,
+                          level: level,
+                          date: date,
+                          price: price,
+                          teacher_id: teacher_id,
+                          teacherName: teacherName
+                      })
+                      newCourse.save().then(() => {
+                          resolve()
+                      }).catch(error => {
+                          reject(error)
+                      })
+                
+            }).catch(error => {
+              reject(error)
+            })
+       
+    })
+}
+function getTeacherCourse(id) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Courses.find({ teacher_id: id }).then(course => {
+                resolve(course)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}function getCourse(title1) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            let title = title1
+            title = title.replace(/_/g, ' ')
+            Courses.findOne({title: title}).then(courses => {
+                resolve(courses)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+function getAllCourses() {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Courses.find().then(courses => {
+                resolve(courses)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+function DeletCourse(deletedTitle) {
+    return new Promise((resolve, reject) => {
+        connect().then(() => {
+            Courses.deleteOne({ title: deletedTitle }).then(course => {
+                console.log(course);
+                if (fs.existsSync('./public'+course.imgUrl)){
+                    fs.unlinkSync('./public'+course.imgUrl)
+                }
+                if (fs.existsSync('./public' + course.pdfUrl)) {
+                    fs.unlinkSync('./public' + course.pdfUrl)
+                }
+                resolve(course)
+            }).catch(error => {
+            console.log(error);
+            reject()
+        })
+    }).catch(error => {
+        reject(error)
+    })
+})
+}
+
 // function checkUser(email, password) {
 //     return new Promise((resolve, reject) => {
 //         connect().then(() => {
@@ -378,10 +612,18 @@ function editAdmin (email, newEmail, newPassword) {
 module.exports = {
     registerUser,
     editAdmin,
+    checkUser,
     checkAdmin,
-    // checkUser,
-    // addBook,
-    // getAllBooks,
+    getUser,
+    DeletUser,
+    addCourse,
+    getTeacherCourse,
+    getCourse,
+    getAllCourses,
+    DeletCourse,
+    getUserEmail,
+    addCourseArr,
+    getCourseArr,
     // getBook,
     // userBooks,
     // updateBook,

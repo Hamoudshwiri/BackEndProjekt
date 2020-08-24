@@ -1759,3 +1759,8 @@ h5,
     position: relative;
     width: 40%;
 }
+
+label{
+    font-size: large;
+    font-weight: bold;
+}
