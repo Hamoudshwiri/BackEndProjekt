@@ -17,7 +17,7 @@
     "express-session": "^1.17.1",
     "mongodb": "^3.6.0",
     "mongoose": "^5.9.28",
-    "nodemailer": "^6.4.11",
+    "nodemailer": "^6.4.16",
     "password-hash": "^1.2.2",
     "paypal-rest-sdk": "^1.8.1"
   }
